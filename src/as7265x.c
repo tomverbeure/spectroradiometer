@@ -272,7 +272,13 @@ void as7265x_read_cal_data(int i2c_drv_node, float * destination)
 
 int main(int argv, char **argc)
 {
-    int node = as7265x_i2c_drv_open(6);
+    if (argv != 2){
+	printf("%d\n", argv);
+        printf("Usage: as7265x <i2c bus nr>\n");
+        exit(1);
+    }
+    //int node = as7265x_i2c_drv_open(atoi(argc[1]));
+    int node = as7265x_i2c_drv_open(10);
     printf("node: %d\n", node);
     as7265x_i2c_dev_addr_set(node, 0x49);
 
