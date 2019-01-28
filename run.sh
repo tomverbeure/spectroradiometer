@@ -1,0 +1,24 @@
+
+I2C_PORT=6
+I2C_ADDR=0x49
+STATUS_REG=0x00
+WR_REG=0x01
+RD_REG=0x02
+
+echo "Status:"
+
+# Select address 0 for read
+echo "Addr 0:"
+i2cget -y $I2C_PORT $I2C_ADDR $STATUS_REG
+i2cset -y $I2C_PORT $I2C_ADDR $WR_REG 0x00
+i2cget -y $I2C_PORT $I2C_ADDR $STATUS_REG
+i2cget -y $I2C_PORT $I2C_ADDR $STATUS_REG
+i2cget -y $I2C_PORT $I2C_ADDR $RD_REG
+
+
+echo "Addr 1:"
+i2cget -y $I2C_PORT $I2C_ADDR $STATUS_REG
+i2cset -y $I2C_PORT $I2C_ADDR $WR_REG 0x01
+i2cget -y $I2C_PORT $I2C_ADDR $STATUS_REG
+i2cget -y $I2C_PORT $I2C_ADDR $STATUS_REG
+i2cget -y $I2C_PORT $I2C_ADDR $RD_REG
