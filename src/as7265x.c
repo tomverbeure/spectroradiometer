@@ -315,7 +315,6 @@ int main(int argv, char **argc)
             printf("%10.4f, ", val);
         }
         printf("\n");
-        sleep(1);
     }
 
 }
