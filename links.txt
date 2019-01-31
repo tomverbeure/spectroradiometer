@@ -1,0 +1,9 @@
+
+* https://www.waveformlighting.com/tech/spd-to-cie-xy-calculator
+
+    Spectrum to xy convertor
+
+* http://www.kayelaby.npl.co.uk/general_physics/2_5/2_5_4.html
+
+    1931 CIE colorimetric spectral tristimulus values
+
