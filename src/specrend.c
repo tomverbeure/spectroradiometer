@@ -383,6 +383,7 @@ double bb_spectrum(double wavelength)
       10000 K      0.2807 0.2884 0.4310   0.602 0.693 1.000
 */
 
+#if 0
 int main()
 {
     double t, x, y, z, r, g, b;
@@ -406,3 +407,5 @@ int main()
     }
     return 0;
 }
+#endif
+

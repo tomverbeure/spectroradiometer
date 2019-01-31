@@ -12,15 +12,15 @@
 
 #define AS72651_RAW_VALUE_0_H       0x08    // selection depends on register value of DEV_SEL
 #define AS72651_RAW_VALUE_0_L       0x09
-#define AS72651_RAW_VALUE_1_H       0x0A    
+#define AS72651_RAW_VALUE_1_H       0x0A
 #define AS72651_RAW_VALUE_1_L       0x0B
-#define AS72651_RAW_VALUE_2_H       0x0C    
+#define AS72651_RAW_VALUE_2_H       0x0C
 #define AS72651_RAW_VALUE_2_L       0x0D
-#define AS72651_RAW_VALUE_3_H       0x0E    
+#define AS72651_RAW_VALUE_3_H       0x0E
 #define AS72651_RAW_VALUE_3_L       0x0F
-#define AS72651_RAW_VALUE_4_H       0x10    
+#define AS72651_RAW_VALUE_4_H       0x10
 #define AS72651_RAW_VALUE_4_L       0x11
-#define AS72651_RAW_VALUE_5_H       0x12    
+#define AS72651_RAW_VALUE_5_H       0x12
 #define AS72651_RAW_VALUE_5_L       0x13
 
 #define AS72651_I2C_CAL_SELECT      0x3F
@@ -101,4 +101,21 @@
 #define MODE2            0x02 // default, all 18 channels
 #define MODE3            0x03 // one shotoperation of mode 2
 
+
+int  as7265x_i2c_drv_open(int i2c_port_nr);
+int  as7265x_i2c_dev_addr_set(int i2c_drv_node, int i2c_dev_addr);
+void as7265x_clear_status(int i2c_drv_node);
+void as7265x_wait_tx_valid(int i2c_drv_node);
+void as7265x_wait_rx_valid(int i2c_drv_node);
+int  as7265x_rd_reg(int i2c_drv_node, int reg_addr);
+void as7265x_wr_reg(int i2c_drv_node, int reg_addr, int reg_data);
+void as7265x_dev_sel(int i2c_drv_node, int dev_nr);
+void as7265x_init(int i2c_drv_node, int gain, int mode, int int_time);
+void as7265x_revision(int i2c_drv_node, int *hw_version, int *sw_major_version, int *sw_patch_version, int *sw_build_version);
+void as7265x_set_indicator_led(int i2c_drv_node, int dev_nr, int enable);
+void as7265x_read_and_print(int i2c_drv_node, int reg_addr);
+void as7265x_coef_read(int i2c_drv_node, int coef_read);
+void as7265x_read_raw_data(int i2c_drv_node, int16_t * destination);
+void as7265x_read_cal_data(int i2c_drv_node, float * destination);
+;
 #endif
