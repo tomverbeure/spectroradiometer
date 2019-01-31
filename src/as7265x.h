@@ -101,6 +101,8 @@
 #define MODE2            0x02 // default, all 18 channels
 #define MODE3            0x03 // one shotoperation of mode 2
 
+extern uint16_t freqs[18];
+extern int      freq_order[18];
 
 int  as7265x_i2c_drv_open(int i2c_port_nr);
 int  as7265x_i2c_dev_addr_set(int i2c_drv_node, int i2c_dev_addr);

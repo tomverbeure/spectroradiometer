@@ -6,6 +6,32 @@
 #include <stdint.h>
 
 #include "as7265x.h"
+#include "specrend.h"
+
+void buckets_to_xyz(float cal_data[18], double *x, double *y, double *z)
+{
+    float X = 0.0;
+    float Y = 0.0;
+    float Z = 0.0;
+
+    for(int i=0;i<18;++i){
+        int   freq = freqs[freq_order[i]];
+        float val  = cal_data[freq_order[i]];
+
+        int entry = (freq - 380)/5;
+        if (entry > 80)
+            continue;
+
+        X += cie_colour_match[entry][0] * val;
+        Y += cie_colour_match[entry][1] * val;
+        Z += cie_colour_match[entry][2] * val;
+    }
+
+    double XYZ = (X + Y + Z);
+    *x = X / XYZ;
+    *y = Y / XYZ;
+    *z = Z / XYZ;
+}
 
 int main(int argv, char **argc)
 {
@@ -34,10 +60,6 @@ int main(int argv, char **argc)
     usleep(200000);
     as7265x_set_indicator_led(node, 0, 0);
 
-    //                   0    1    2    3    4    5    6    7    8    9    10   11   12   13   14   15   16   17
-    uint16_t freqs[18] = {610, 680, 730, 760, 810, 860, 560, 585, 645, 705, 900, 940, 410, 435, 460, 485, 510, 535};
-    int freq_order[18] = { 12, 13, 14, 15, 16, 17, 6, 7, 0, 8, 1, 9, 2, 3, 4, 5, 10, 11 };
-
     for(int i=0;i<18;++i){
         int freq = freqs[freq_order[i]];
         printf("%8d,", freq);
@@ -48,11 +70,18 @@ int main(int argv, char **argc)
         float cal_data[18];
         as7265x_read_cal_data(node, cal_data);
 
+        double x,y,z;
+        buckets_to_xyz(cal_data, &x, &y, &z);
+
+        printf("x,y,z: %8f, %8f, %8f - ", x,y,z);
+
+#if 1
         for(int i=0;i<18;++i){
             float val = cal_data[freq_order[i]];
-            printf("%8.4f,", val);
+            printf("%4f,", val);
         }
         printf("\n");
+#endif
     }
 
 }
