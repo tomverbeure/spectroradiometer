@@ -302,7 +302,7 @@ int main(int argv, char **argc)
 
     for(int i=0;i<18;++i){
         int freq = freqs[freq_order[i]];
-        printf("%10d, ", freq);
+        printf("%8d,", freq);
     }
     printf("\n\n");
 
@@ -312,7 +312,7 @@ int main(int argv, char **argc)
 
         for(int i=0;i<18;++i){
             float val = cal_data[freq_order[i]];
-            printf("%10.4f, ", val);
+            printf("%8.4f,", val);
         }
         printf("\n");
     }
