@@ -5,8 +5,15 @@
 #include <fcntl.h>
 #include <stdint.h>
 
+#include <netdb.h> 
+#include <netinet/in.h> 
+#include <string.h> 
+#include <sys/socket.h> 
+#include <sys/types.h> 
+
 #include "as7265x.h"
 #include "specrend.h"
+#include "tcp_server.h"
 
 void buckets_to_xyz(float cal_data[18], double *x, double *y, double *z)
 {
@@ -33,8 +40,71 @@ void buckets_to_xyz(float cal_data[18], double *x, double *y, double *z)
     *z = Z / XYZ;
 }
 
+// Function designed for chat between client and server. 
+#define MAX 80 
+void func(int sockfd) 
+{ 
+    char buff[MAX]; 
+    int n; 
+    // infinite loop for chat 
+    for (;;) { 
+        bzero(buff, MAX); 
+  
+        // read the message from client and copy it in buffer 
+        read(sockfd, buff, sizeof(buff)); 
+        // print buffer which contains the client contents 
+        printf("From client: %s\t To client : ", buff); 
+        bzero(buff, MAX); 
+        n = 0; 
+        // copy server message in the buffer 
+        while ((buff[n++] = getchar()) != '\n') 
+            ; 
+  
+        // and send that buffer to client 
+        write(sockfd, buff, sizeof(buff)); 
+  
+        // if msg contains "Exit" then server exit and chat ended. 
+        if (strncmp("exit", buff, 4) == 0) { 
+            printf("Server Exit...\n"); 
+            break; 
+        } 
+    } 
+} 
+
+#if 0
+int parse_options(int argv, char **argc)
+{
+    int c;
+
+    int verbose_flag;
+
+    static  struct option long_options[] = {
+        { "verbose",            no_argument,        &verbose_flag,  1},
+        { "server",             no_argument,        0,              'p'},
+        { "port",               required_argument,  0,              'p'},
+        { 0,0,0,0 }
+    };
+        
+
+    int option_index = 0;
+    while((c = getopt_long(argc, argv, "p:", long_options, &option_index)) != -1){
+        switch(c){
+            case 0:
+        }
+    }
+}
+#endif
+
 int main(int argv, char **argc)
 {
+    int socket_nr, fd; 
+    
+    if (setup_tcp_connection(4000, &socket_nr, &fd) != 0){
+        printf("Couldn't open socket.\n");
+    }
+
+    close_tcp_connection(socket_nr);
+
     if (argv != 2){
         printf("Usage: as7265x <i2c bus nr>\n");
         exit(1);
