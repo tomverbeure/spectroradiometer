@@ -10,10 +10,17 @@
 #include <string.h> 
 #include <sys/socket.h> 
 #include <sys/types.h> 
+#include <getopt.h>
 
 #include "as7265x.h"
 #include "specrend.h"
 #include "tcp_server.h"
+
+// Command line options
+int i2c_bus = -1;
+int verbose_flag = 0;
+int server_flag = 0;
+int port_nr = 5000;
 
 void buckets_to_xyz(float cal_data[18], double *x, double *y, double *z)
 {
@@ -71,48 +78,65 @@ void func(int sockfd)
     } 
 } 
 
-#if 0
-int parse_options(int argv, char **argc)
+void parse_options(int argc, char **argv)
 {
     int c;
 
-    int verbose_flag;
-
     static  struct option long_options[] = {
-        { "verbose",            no_argument,        &verbose_flag,  1},
-        { "server",             no_argument,        0,              'p'},
-        { "port",               required_argument,  0,              'p'},
+        { "i2c_bus",            required_argument,  NULL,           'i'},
+        { "verbose",            no_argument,        NULL,           'v'},
+        { "server",             no_argument,        NULL,           's'},
+        { "port",               required_argument,  NULL,           'p'},
         { 0,0,0,0 }
     };
         
 
     int option_index = 0;
-    while((c = getopt_long(argc, argv, "p:", long_options, &option_index)) != -1){
+    while((c = getopt_long(argc, argv, "i:vsp:", long_options, &option_index)) != -1){
         switch(c){
-            case 0:
+            case 'i':
+                i2c_bus = atoi(optarg);
+                break;
+            case 'v':
+                verbose_flag = 1;
+                break;
+            case 's':
+                server_flag = 1;
+                break;
+            case 'p':
+                port_nr = atoi(optarg);
+                break;
         }
     }
+
+    if (verbose_flag){
+        printf("i2c_bus:            %d\n", i2c_bus);
+        printf("verbose:            %d\n", verbose_flag);
+        printf("server:             %d\n", server_flag);
+        printf("port:               %d\n", port_nr);
+    }
+
+    if (i2c_bus == -1){
+        printf("i2c bus not specified.\n");
+        exit(0);
+    }
 }
-#endif
 
 int main(int argv, char **argc)
 {
     int socket_nr, fd; 
+
+    parse_options(argv, argc);
     
-    if (setup_tcp_connection(4000, &socket_nr, &fd) != 0){
-        printf("Couldn't open socket.\n");
+    if (server_flag){
+        if (setup_tcp_connection(4000, &socket_nr, &fd) != 0){
+            printf("Couldn't open socket.\n");
+        }
     }
 
-    close_tcp_connection(socket_nr);
+    printf("I2C bus: %d\n", i2c_bus);
 
-    if (argv != 2){
-        printf("Usage: as7265x <i2c bus nr>\n");
-        exit(1);
-    }
-    printf("Bus: %d\n", atoi(argc[1]));
-
-    int node = as7265x_i2c_drv_open(atoi(argc[1]));
-    //int node = as7265x_i2c_drv_open(10);
+    int node = as7265x_i2c_drv_open(i2c_bus);
     printf("node: %d\n", node);
     as7265x_i2c_dev_addr_set(node, 0x49);
 
