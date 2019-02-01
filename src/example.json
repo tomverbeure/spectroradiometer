@@ -1,0 +1,19 @@
+{
+    "config": {
+        "device_type": 100,
+        "hw_version": 100,
+        "fw_version": { 0x0000, 0x0000, 0x0000 },
+        "gain": 2,
+        "int_time": 100
+    },
+    "measurements": [
+        {
+            "temp": 23,
+            "raw_data":   [ [ 410, 100 ], [ 435, 300 ] ],
+            "calib_data": [ [ 410, 100 ], [ 435, 300 ] ],
+            "tagged": 1
+        },
+        {
+        }
+    ]
+}

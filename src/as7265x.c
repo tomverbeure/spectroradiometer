@@ -225,7 +225,7 @@ void as7265x_read_raw_data(int i2c_drv_node, int16_t * destination)
     // collect D,C,A,B,E, F data
     as7265x_wr_reg(i2c_drv_node, AS72651_DEV_SEL, 2);
     for(int i = 0; i < 6; i++) {
-        for(int j = 0; j < 4; j++) {
+        for(int j = 0; j < 2; j++) {
             rawData[j] = as7265x_rd_reg(i2c_drv_node, AS72651_RAW_VALUE_0_H + 2*i + j);
         }
 
