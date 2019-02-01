@@ -119,5 +119,6 @@ void as7265x_read_and_print(int i2c_drv_node, int reg_addr);
 void as7265x_coef_read(int i2c_drv_node, int coef_read);
 void as7265x_read_raw_data(int i2c_drv_node, int16_t * destination);
 void as7265x_read_cal_data(int i2c_drv_node, float * destination);
-;
+int as7265x_get_temperature(int i2c_drv_node, int dev_nr);
+
 #endif

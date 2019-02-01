@@ -274,3 +274,12 @@ void as7265x_read_cal_data(int i2c_drv_node, float * destination)
 
 }
 
+int as7265x_get_temperature(int i2c_drv_node, int dev_nr)
+{
+    as7265x_wr_reg(i2c_drv_node, AS72651_DEV_SEL, dev_nr);
+
+    int temp = as7265x_rd_reg(i2c_drv_node, AS72651_DEV_TEMP);
+
+    return temp;
+}
+
