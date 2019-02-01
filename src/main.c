@@ -47,6 +47,23 @@ void buckets_to_xyz(float cal_data[18], double *x, double *y, double *z)
     *z = Z / XYZ;
 }
 
+void json_config_out()
+{
+}
+
+void startup_blink(int i2c_node)
+{
+    as7265x_set_indicator_led(i2c_node, 0, 0);
+    usleep(200000);
+    as7265x_set_indicator_led(i2c_node, 0, 1);
+    usleep(200000);
+    as7265x_set_indicator_led(i2c_node, 0, 0);
+    usleep(200000);
+    as7265x_set_indicator_led(i2c_node, 0, 1);
+    usleep(200000);
+    as7265x_set_indicator_led(i2c_node, 0, 0);
+}
+
 // Function designed for chat between client and server. 
 #define MAX 80 
 void func(int sockfd) 
@@ -136,23 +153,15 @@ int main(int argv, char **argc)
 
     printf("I2C bus: %d\n", i2c_bus);
 
-    int node = as7265x_i2c_drv_open(i2c_bus);
-    printf("node: %d\n", node);
-    as7265x_i2c_dev_addr_set(node, 0x49);
+    int i2c_node = as7265x_i2c_drv_open(i2c_bus);
+    printf("i2c_node: %d\n", i2c_node);
+    as7265x_i2c_dev_addr_set(i2c_node, AS72651_ADDRESS);
 
-    as7265x_revision(node, NULL, NULL, NULL, NULL);
+    as7265x_revision(i2c_node, NULL, NULL, NULL, NULL);
 
-    as7265x_init(node, GAIN_16X, MODE2, 36);
+    startup_blink(i2c_node);
 
-    as7265x_set_indicator_led(node, 0, 0);
-    usleep(200000);
-    as7265x_set_indicator_led(node, 0, 1);
-    usleep(200000);
-    as7265x_set_indicator_led(node, 0, 0);
-    usleep(200000);
-    as7265x_set_indicator_led(node, 0, 1);
-    usleep(200000);
-    as7265x_set_indicator_led(node, 0, 0);
+    as7265x_init(i2c_node, GAIN_16X, MODE2, 36);
 
     for(int i=0;i<18;++i){
         int freq = freqs[freq_order[i]];
@@ -162,7 +171,7 @@ int main(int argv, char **argc)
 
     while(1){
         float cal_data[18];
-        as7265x_read_cal_data(node, cal_data);
+        as7265x_read_data_cal(i2c_node, cal_data);
 
         double x,y,z;
         buckets_to_xyz(cal_data, &x, &y, &z);

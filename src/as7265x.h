@@ -104,6 +104,28 @@
 extern uint16_t freqs[18];
 extern int      freq_order[18];
 
+struct as7265x_config
+{
+    int     device_type;
+    int     hw_version;
+    int     fw_version[3];
+    int     coefs[18];
+};
+
+struct as7265x_measurement_set
+{
+    int     gain;
+    int     int_time;
+    int     mode;
+};
+
+struct as7265x_measurement
+{
+    int16_t     raw_data[18];
+    float       cal_data[18];
+    int         temp[3];
+};
+
 int  as7265x_i2c_drv_open(int i2c_port_nr);
 int  as7265x_i2c_dev_addr_set(int i2c_drv_node, int i2c_dev_addr);
 void as7265x_clear_status(int i2c_drv_node);
@@ -117,8 +139,9 @@ void as7265x_revision(int i2c_drv_node, int *hw_version, int *sw_major_version, 
 void as7265x_set_indicator_led(int i2c_drv_node, int dev_nr, int enable);
 void as7265x_read_and_print(int i2c_drv_node, int reg_addr);
 void as7265x_coef_read(int i2c_drv_node, int coef_read);
-void as7265x_read_raw_data(int i2c_drv_node, int16_t * destination);
-void as7265x_read_cal_data(int i2c_drv_node, float * destination);
-int as7265x_get_temperature(int i2c_drv_node, int dev_nr);
+void as7265x_read_data_raw(int i2c_drv_node, int16_t * destination);
+void as7265x_read_data_cal(int i2c_drv_node, float * destination);
+int  as7265x_read_temperature(int i2c_drv_node, int dev_nr);
+void as7265x_fill_measurement(int i2c_drv_node, struct as7265x_measurement *m);
 
 #endif

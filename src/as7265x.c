@@ -198,11 +198,11 @@ void as7265x_coef_read(int i2c_drv_node, int coef_read)
     printf("wr: 0x55, rd: 0x%02x\n", rd_data);
 }
 
-void as7265x_read_raw_data(int i2c_drv_node, int16_t * destination)
+void as7265x_read_data_raw(int i2c_drv_node, int16_t * destination)
 {
     uint8_t rawData[2];
 
-    // collect R,S,T,U,V, W data
+    // collect R,S,T,U,V,W data
     as7265x_wr_reg(i2c_drv_node, AS72651_DEV_SEL, 0);
     for(int i = 0; i < 6; i++) {
         for(int j = 0; j < 2; j++) {
@@ -212,7 +212,7 @@ void as7265x_read_raw_data(int i2c_drv_node, int16_t * destination)
         destination[i] = (int16_t) ( ((int16_t) rawData[0] << 8) | rawData[1]);
     }
 
-    // collect J,I,G,H,K, L data
+    // collect J,I,G,H,K,L data
     as7265x_wr_reg(i2c_drv_node, AS72651_DEV_SEL, 1);
     for(int i = 0; i < 6; i++) {
         for(int j = 0; j < 2; j++) {
@@ -222,7 +222,7 @@ void as7265x_read_raw_data(int i2c_drv_node, int16_t * destination)
         destination[i + 6] = (int16_t) ( ((int16_t) rawData[0] << 8) | rawData[1]);
     }
 
-    // collect D,C,A,B,E, F data
+    // collect D,C,A,B,E,F data
     as7265x_wr_reg(i2c_drv_node, AS72651_DEV_SEL, 2);
     for(int i = 0; i < 6; i++) {
         for(int j = 0; j < 2; j++) {
@@ -235,11 +235,11 @@ void as7265x_read_raw_data(int i2c_drv_node, int16_t * destination)
 }
 
 
-void as7265x_read_cal_data(int i2c_drv_node, float * destination)
+void as7265x_read_data_cal(int i2c_drv_node, float * destination)
 {
     uint8_t rawData[4];
 
-    // collect R,S,T,U,V, W data
+    // collect R,S,T,U,V,W data
     as7265x_wr_reg(i2c_drv_node, AS72651_DEV_SEL, 0);
     for(int i = 0; i < 6; i++) {
         for(int j = 0; j < 4; j++) {
@@ -250,7 +250,7 @@ void as7265x_read_cal_data(int i2c_drv_node, float * destination)
         destination[i] = *(float*)&x;
     }
 
-    // collect J,I,G,H,K, L data
+    // collect J,I,G,H,K,L data
     as7265x_wr_reg(i2c_drv_node, AS72651_DEV_SEL, 1);
     for(int i = 0; i < 6; i++) {
         for(int j = 0; j < 4; j++) {
@@ -261,7 +261,7 @@ void as7265x_read_cal_data(int i2c_drv_node, float * destination)
         destination[i + 6] = *(float*)&x;
     }
 
-    //collect D,C,A,B,E, F data
+    //collect D,C,A,B,E,F data
     as7265x_wr_reg(i2c_drv_node, AS72651_DEV_SEL, 2);
     for(int i = 0; i < 6; i++) {
         for(int j = 0; j < 4; j++) {
@@ -274,7 +274,7 @@ void as7265x_read_cal_data(int i2c_drv_node, float * destination)
 
 }
 
-int as7265x_get_temperature(int i2c_drv_node, int dev_nr)
+int as7265x_read_temperature(int i2c_drv_node, int dev_nr)
 {
     as7265x_wr_reg(i2c_drv_node, AS72651_DEV_SEL, dev_nr);
 
@@ -283,3 +283,11 @@ int as7265x_get_temperature(int i2c_drv_node, int dev_nr)
     return temp;
 }
 
+void as7265x_fill_measurement(int i2c_drv_node, struct as7265x_measurement *m)
+{
+    as7265x_read_data_cal(i2c_drv_node, m->cal_data);
+    as7265x_read_data_raw(i2c_drv_node, m->raw_data);
+    for(int i=0;i<3;++i){
+        m->temp[1] = as7265x_read_temperature(i2c_drv_node, i);
+    }
+}
