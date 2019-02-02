@@ -104,15 +104,14 @@
 extern uint16_t freqs[18];
 extern int      freq_order[18];
 
-struct as7265x_config
+struct as7265x_dev_identity
 {
-    int     device_type;
     int     hw_version;
     int     fw_version[3];
     int     coefs[18];
 };
 
-struct as7265x_measurement_set
+struct as7265x_measurement_settings
 {
     int     gain;
     int     int_time;
@@ -142,6 +141,9 @@ void as7265x_coef_read(int i2c_drv_node, int coef_read);
 void as7265x_read_data_raw(int i2c_drv_node, int16_t * destination);
 void as7265x_read_data_cal(int i2c_drv_node, float * destination);
 int  as7265x_read_temperature(int i2c_drv_node, int dev_nr);
+
+void as7265x_fill_dev_identify(int i2c_drv_node, struct as7265x_dev_identity *di);
+void as7265x_fill_measurement_settings(int i2c_drv_node, struct as7265x_measurement_settings *ms);
 void as7265x_fill_measurement(int i2c_drv_node, struct as7265x_measurement *m);
 
 #endif

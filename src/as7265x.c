@@ -291,3 +291,21 @@ void as7265x_fill_measurement(int i2c_drv_node, struct as7265x_measurement *m)
         m->temp[1] = as7265x_read_temperature(i2c_drv_node, i);
     }
 }
+
+void as7265x_fill_measurement_settings(int i2c_drv_node, struct as7265x_measurement_settings *ms)
+{
+    int setup = as7265x_rd_reg(i2c_drv_node, AS72651_CONTROL_SETUP);
+    ms->gain        = (setup >> 4) & 3;
+    ms->mode        = (setup >> 2) & 3;
+    ms->int_time = as7265x_rd_reg(i2c_drv_node, AS72651_INT_TIME);
+}
+
+void as7265x_fill_dev_identify(int i2c_drv_node, struct as7265x_dev_identity *di)
+{
+    as7265x_revision(i2c_drv_node, 
+                           &(di->hw_version), 
+                           &(di->fw_version[0]),
+                           &(di->fw_version[1]),
+                           &(di->fw_version[2]));
+}
+
