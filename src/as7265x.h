@@ -120,6 +120,7 @@ struct as7265x_measurement_settings
 
 struct as7265x_measurement
 {
+    time_t      timestamp;
     int16_t     raw_data[18];
     float       cal_data[18];
     int         temp[3];

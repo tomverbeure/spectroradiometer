@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <stdint.h>
+#include <time.h>
 
 #include "linux/i2c-dev.h"
 
@@ -185,19 +186,6 @@ void as7265x_read_and_print(int i2c_drv_node, int reg_addr)
     printf("addr: 0x%02x = 0x%02x\n", reg_addr, rd_data);
 }
 
-void as7265x_coef_read(int i2c_drv_node, int coef_read)
-{
-    int rd_data;
-
-    as7265x_wr_reg(i2c_drv_node, 0x54, 0x55);
-    rd_data = as7265x_rd_reg(i2c_drv_node, 0x54);
-    printf("wr: 0x55, rd: 0x%02x\n", rd_data);
-
-    as7265x_wr_reg(i2c_drv_node, 0x54, 0xaa);
-    rd_data = as7265x_rd_reg(i2c_drv_node, 0xaa);
-    printf("wr: 0x55, rd: 0x%02x\n", rd_data);
-}
-
 void as7265x_read_data_raw(int i2c_drv_node, int16_t * destination)
 {
     uint8_t rawData[2];
@@ -285,6 +273,7 @@ int as7265x_read_temperature(int i2c_drv_node, int dev_nr)
 
 void as7265x_fill_measurement(int i2c_drv_node, struct as7265x_measurement *m)
 {
+    time(&m->timestamp);
     as7265x_read_data_cal(i2c_drv_node, m->cal_data);
     as7265x_read_data_raw(i2c_drv_node, m->raw_data);
     for(int i=0;i<3;++i){
@@ -307,5 +296,10 @@ void as7265x_fill_dev_identify(int i2c_drv_node, struct as7265x_dev_identity *di
                            &(di->fw_version[0]),
                            &(di->fw_version[1]),
                            &(di->fw_version[2]));
+
+    // For now, don't fetch these.
+    for(int i=0;i<sizeof(di->coefs)/sizeof(int);++i){
+        di->coefs[i] = 0;
+    }
 }
 
