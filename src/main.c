@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <stdint.h>
 #include <time.h>
+#include <termios.h>
 
 #include <netdb.h>
 #include <netinet/in.h>
@@ -22,6 +23,7 @@ int i2c_bus = -1;
 int verbose_flag = 0;
 int server_flag = 0;
 int port_nr = 5000;
+char dut_name[256];
 
 void buckets_to_XYZ(float cal_data[18], double *X, double *Y, double *Z)
 {
@@ -111,12 +113,16 @@ void parse_options(int argc, char **argv)
         { "verbose",            no_argument,        NULL,           'v'},
         { "server",             no_argument,        NULL,           's'},
         { "port",               required_argument,  NULL,           'p'},
+        { "dut",                required_argument,  NULL,           'd'},
+        { "help",               no_argument,        NULL,           'h'},
         { 0,0,0,0 }
     };
 
+    strcpy(dut_name, "<Unknown>");
+    memset(dut_name, sizeof(dut_name), 0);
 
     int option_index = 0;
-    while((c = getopt_long(argc, argv, "i:vsp:", long_options, &option_index)) != -1){
+    while((c = getopt_long(argc, argv, "i:vsp:hd:", long_options, &option_index)) != -1){
         switch(c){
             case 'i':
                 i2c_bus = atoi(optarg);
@@ -130,6 +136,13 @@ void parse_options(int argc, char **argv)
             case 'p':
                 port_nr = atoi(optarg);
                 break;
+            case 'd':
+                strncpy(dut_name, optarg, sizeof(dut_name)-1);
+                break;
+            case 'h':
+                printf("as7265x ... TODO\n");
+                exit(0);
+                break;
         }
     }
 
@@ -138,6 +151,7 @@ void parse_options(int argc, char **argv)
         printf("verbose:            %d\n", verbose_flag);
         printf("server:             %d\n", server_flag);
         printf("port:               %d\n", port_nr);
+        printf("DUT name:           %s\n", dut_name);
     }
 
     if (i2c_bus == -1){
@@ -168,7 +182,7 @@ void output_gs1160_csv(int fd,
                  "Serial Number, \n"
                  "Time, %s\n"
                  "DUT, %s\n"
-                 "Temperature, %d"
+                 "Temperature, %d\n"
                  "X, %f\n"
                  "Y, %f\n"
                  "Z, %f\n"
@@ -195,40 +209,77 @@ int main(int argv, char **argc)
         }
     }
 
-    printf("I2C bus: %d\n", i2c_bus);
+#if 0
+    initscr();
+    cbreak();
+    timeout(-1);
+#endif
 
+
+    struct termios orig_settings, new_settings;
+    tcgetattr(0, &orig_settings);
+
+    new_settings = orig_settings;
+    new_settings.c_lflag &= ~ICANON;
+    new_settings.c_lflag &= ~ECHO;
+    new_settings.c_lflag &= ~ISIG;
+    new_settings.c_cc[VMIN] = 0;
+    new_settings.c_cc[VTIME] = 0;
+
+    tcsetattr(0, TCSANOW, &new_settings);
+
+    printf("I2C bus: %d\n\r", i2c_bus);
     int i2c_node = as7265x_i2c_drv_open(i2c_bus);
-    printf("i2c_node: %d\n", i2c_node);
+    printf("i2c_node: %d\n\r", i2c_node);
     as7265x_i2c_dev_addr_set(i2c_node, AS72651_ADDRESS);
 
-    as7265x_revision(i2c_node, NULL, NULL, NULL, NULL);
-
     startup_blink(i2c_node);
-
     as7265x_init(i2c_node, GAIN_16X, MODE2, 36);
 
-    for(int i=0;i<18;++i){
-        int freq = freqs[freq_order[i]];
-        printf("%8d,", freq);
-    }
-    printf("\n\n");
+    struct as7265x_dev_identity di;
+    struct as7265x_measurement_settings ms;
+    struct as7265x_measurement m;
 
-    while(1){
+    as7265x_fill_dev_identify(i2c_node, &di);
+    as7265x_fill_measurement_settings(i2c_node, &ms);
+
+    char c = 0;
+    while(c != 'q'){
+        c = getchar();
+        if (c == 3){
+            break;
+        }
+
         float cal_data[18];
         as7265x_read_data_cal(i2c_node, cal_data);
 
         double x,y,z;
         buckets_to_xyz(cal_data, &x, &y, &z);
 
-        printf("x,y,z: %8f, %8f, %8f - ", x,y,z);
+        printf("x,y,z: %4.3f,%4.3f,%4.3f - ", x,y,z);
 
-#if 1
         for(int i=0;i<18;++i){
             float val = cal_data[freq_order[i]];
-            printf("%4f,", val);
+            printf("%3.3f,", val);
         }
-        printf("\n");
-#endif
+        printf("\n\r");
+
+        if (c == 'r' || c == 'g' || c == 'b' || c == 'w'){
+            as7265x_fill_measurement(i2c_node, &m);
+
+            struct tm *tm_info;
+            tm_info = localtime(&m.timestamp);
+            char time_str[80];
+            strftime(time_str, sizeof(time_str), "%Y%m%d_%H%M%S", tm_info);
+
+            char filename[256];
+            sprintf(filename, "as7276x_%s_%c_%s.csv", dut_name, c, time_str);
+            printf("Logging to file '%s'.\n", filename);
+            int fd = creat(filename, O_RDWR | S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+            output_gs1160_csv(fd, dut_name, &di, &ms, &m);
+            close(fd);
+        }
     }
 
+    tcsetattr(0, TCSANOW, &orig_settings);
 }

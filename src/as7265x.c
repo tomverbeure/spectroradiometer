@@ -115,6 +115,7 @@ void as7265x_dev_sel(int i2c_drv_node, int dev_nr)
 
 void as7265x_init(int i2c_drv_node, int gain, int mode, int int_time)
 {
+    as7265x_wr_reg(i2c_drv_node, AS72651_CONTROL_SETUP, (1 << 7) );         // Soft reset
     as7265x_wr_reg(i2c_drv_node, AS72651_LED_CONFIG, 0x00);
     as7265x_wr_reg(i2c_drv_node, AS72651_CONTROL_SETUP, (gain << 4) | (mode << 2));
     as7265x_wr_reg(i2c_drv_node, AS72651_INT_TIME, int_time);
