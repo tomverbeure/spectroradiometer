@@ -15,7 +15,7 @@
 #include <getopt.h>
 
 #include "as7265x.h"
-#include "tcs3472.h"
+#include "tcs34725.h"
 #include "specrend.h"
 #include "tcp_server.h"
 
@@ -244,10 +244,10 @@ int main(int argv, char **argc)
     as7265x_fill_dev_identify(as_i2c_node, &di);
     as7265x_fill_measurement_settings(as_i2c_node, &ms);
 
-    printf("TCS3472 I2C bus: %d\n\r", i2c_bus);
-    int tcs_i2c_node = tcs3472_i2c_drv_open(i2c_bus);
-    printf("TCS3472 i2c_node: %d\n\r", tcs_i2c_node);
-    tcs3472_i2c_dev_addr_set(tcs_i2c_node, TCS3472_ADDRESS);
+    printf("TCS34725 I2C bus: %d\n\r", i2c_bus);
+    int tcs_i2c_node = tcs34725_i2c_drv_open(i2c_bus);
+    printf("TCS34725 i2c_node: %d\n\r", tcs_i2c_node);
+    tcs34725_i2c_dev_addr_set(tcs_i2c_node, TCS34725_ADDRESS);
 
     char c = 0;
     while(c != 'q'){

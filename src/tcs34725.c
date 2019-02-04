@@ -7,14 +7,14 @@
 
 #include "linux/i2c-dev.h"
 
-#include "tcs3472.h"
+#include "tcs34725.h"
 
 
 //============================================================
 // Low level I2C
 //============================================================
 
-int tcs3472_i2c_drv_open(int i2c_port_nr)
+int tcs34725_i2c_drv_open(int i2c_port_nr)
 {
     char i2c_dev_path[256];
     sprintf(i2c_dev_path, "/dev/i2c-%d", i2c_port_nr);
@@ -31,7 +31,7 @@ int tcs3472_i2c_drv_open(int i2c_port_nr)
     return i2c_drv_node;
 }
 
-int tcs3472_i2c_dev_addr_set(int i2c_drv_node, int i2c_dev_addr)
+int tcs34725_i2c_dev_addr_set(int i2c_drv_node, int i2c_dev_addr)
 {
 	int ret_val = ioctl(i2c_drv_node, I2C_SLAVE, i2c_dev_addr);
 	if (ret_val < 0) {
