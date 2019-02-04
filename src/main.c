@@ -15,6 +15,7 @@
 #include <getopt.h>
 
 #include "as7265x.h"
+#include "tcs3472.h"
 #include "specrend.h"
 #include "tcp_server.h"
 
@@ -60,17 +61,17 @@ void json_config_out()
 {
 }
 
-void startup_blink(int i2c_node)
+void startup_blink(int as_i2c_node)
 {
-    as7265x_set_indicator_led(i2c_node, 0, 0);
+    as7265x_set_indicator_led(as_i2c_node, 0, 0);
     usleep(200000);
-    as7265x_set_indicator_led(i2c_node, 0, 1);
+    as7265x_set_indicator_led(as_i2c_node, 0, 1);
     usleep(200000);
-    as7265x_set_indicator_led(i2c_node, 0, 0);
+    as7265x_set_indicator_led(as_i2c_node, 0, 0);
     usleep(200000);
-    as7265x_set_indicator_led(i2c_node, 0, 1);
+    as7265x_set_indicator_led(as_i2c_node, 0, 1);
     usleep(200000);
-    as7265x_set_indicator_led(i2c_node, 0, 0);
+    as7265x_set_indicator_led(as_i2c_node, 0, 0);
 }
 
 // Function designed for chat between client and server.
@@ -228,20 +229,25 @@ int main(int argv, char **argc)
 
     tcsetattr(0, TCSANOW, &new_settings);
 
-    printf("I2C bus: %d\n\r", i2c_bus);
-    int i2c_node = as7265x_i2c_drv_open(i2c_bus);
-    printf("i2c_node: %d\n\r", i2c_node);
-    as7265x_i2c_dev_addr_set(i2c_node, AS72651_ADDRESS);
+    printf("AS32765x I2C bus: %d\n\r", i2c_bus);
+    int as_i2c_node = as7265x_i2c_drv_open(i2c_bus);
+    printf("AS32765x i2c_node: %d\n\r", as_i2c_node);
+    as7265x_i2c_dev_addr_set(as_i2c_node, AS72651_ADDRESS);
 
-    startup_blink(i2c_node);
-    as7265x_init(i2c_node, GAIN_16X, MODE2, 36);
+    startup_blink(as_i2c_node);
+    as7265x_init(as_i2c_node, GAIN_16X, MODE2, 36);
 
     struct as7265x_dev_identity di;
     struct as7265x_measurement_settings ms;
     struct as7265x_measurement m;
 
-    as7265x_fill_dev_identify(i2c_node, &di);
-    as7265x_fill_measurement_settings(i2c_node, &ms);
+    as7265x_fill_dev_identify(as_i2c_node, &di);
+    as7265x_fill_measurement_settings(as_i2c_node, &ms);
+
+    printf("TCS3472 I2C bus: %d\n\r", i2c_bus);
+    int tcs_i2c_node = tcs3472_i2c_drv_open(i2c_bus);
+    printf("TCS3472 i2c_node: %d\n\r", tcs_i2c_node);
+    tcs3472_i2c_dev_addr_set(tcs_i2c_node, TCS3472_ADDRESS);
 
     char c = 0;
     while(c != 'q'){
@@ -251,7 +257,7 @@ int main(int argv, char **argc)
         }
 
         float cal_data[18];
-        as7265x_read_data_cal(i2c_node, cal_data);
+        as7265x_read_data_cal(as_i2c_node, cal_data);
 
         double x,y,z;
         buckets_to_xyz(cal_data, &x, &y, &z);
@@ -265,7 +271,7 @@ int main(int argv, char **argc)
         printf("\n\r");
 
         if (c == 'r' || c == 'g' || c == 'b' || c == 'w'){
-            as7265x_fill_measurement(i2c_node, &m);
+            as7265x_fill_measurement(as_i2c_node, &m);
 
             struct tm *tm_info;
             tm_info = localtime(&m.timestamp);
