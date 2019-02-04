@@ -249,6 +249,9 @@ int main(int argv, char **argc)
     printf("TCS34725 i2c_node: %d\n\r", tcs_i2c_node);
     tcs34725_i2c_dev_addr_set(tcs_i2c_node, TCS34725_ADDRESS);
 
+    int tcs_version = tcs34725_rd_reg8(tcs_i2c_node, TCS34725_ID);
+    printf("TCS version: %02x\n", tcs_version);
+
     char c = 0;
     while(c != 'q'){
         c = getchar();

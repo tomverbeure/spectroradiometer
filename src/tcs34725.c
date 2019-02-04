@@ -40,3 +40,21 @@ int tcs34725_i2c_dev_addr_set(int i2c_drv_node, int i2c_dev_addr)
 	}
 }
 
+int tcs34725_rd_reg8(int i2c_drv_node, int reg_addr)
+{
+    int rd_data = i2c_smbus_read_byte_data(i2c_drv_node, (1<<7) | reg_addr);
+}
+
+int tcs34725_rd_reg16(int i2c_drv_node, int reg_addr)
+{
+    uint16_t rd_data = 0;
+    i2c_smbus_read_i2c_block_data(i2c_drv_node, (1<<7) | reg_addr, 2, (char *)&rd_data);
+
+    return rd_data;
+}
+
+int tcs34725_wr_reg8(int i2c_drv_node, int reg_addr, int reg_data)
+{
+    i2c_smbus_write_byte_data(i2c_drv_node, (1<<7) | reg_addr, reg_data);
+}
+
