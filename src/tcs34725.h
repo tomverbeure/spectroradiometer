@@ -35,5 +35,8 @@ int tcs34725_rd_reg8(int i2c_drv_node, int reg_addr);
 int tcs34725_rd_reg16(int i2c_drv_node, int reg_addr);
 int tcs34725_wr_reg8(int i2c_drv_node, int reg_addr, int reg_data);
 
+void tcs34725_init(int i2c_drv_node, int gain, int atime);
+int tcs34725_id(int i2c_drv_node);
+void tcs34725_get_data(int i2c_drv_node, uint16_t *c, uint16_t *r, uint16_t *g, uint16_t *b);
 
 #endif

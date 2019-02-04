@@ -249,8 +249,10 @@ int main(int argv, char **argc)
     printf("TCS34725 i2c_node: %d\n\r", tcs_i2c_node);
     tcs34725_i2c_dev_addr_set(tcs_i2c_node, TCS34725_ADDRESS);
 
-    int tcs_version = tcs34725_rd_reg8(tcs_i2c_node, TCS34725_ID);
-    printf("TCS version: %02x\n", tcs_version);
+    int tcs_id = tcs34725_id(tcs_i2c_node);
+    printf("TCS id: %02x\n", tcs_id);
+
+    tcs34725_init(tcs_i2c_node, 2, 0x40);
 
     char c = 0;
     while(c != 'q'){
@@ -267,11 +269,17 @@ int main(int argv, char **argc)
 
         printf("x,y,z: %4.3f,%4.3f,%4.3f - ", x,y,z);
 
+        uint16_t c,r,g,b;
+        tcs34725_get_data(tcs_i2c_node, &c, &r, &g, &b);
+
+        printf("c,x,y,z: %d,%d,%d,%d\r\n", c,r,g,b);
+#if 0
         for(int i=0;i<18;++i){
             float val = cal_data[freq_order[i]];
             printf("%3.3f,", val);
         }
         printf("\n\r");
+#endif
 
         if (c == 'r' || c == 'g' || c == 'b' || c == 'w'){
             as7265x_fill_measurement(as_i2c_node, &m);

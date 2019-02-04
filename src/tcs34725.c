@@ -48,7 +48,7 @@ int tcs34725_rd_reg8(int i2c_drv_node, int reg_addr)
 int tcs34725_rd_reg16(int i2c_drv_node, int reg_addr)
 {
     uint16_t rd_data = 0;
-    i2c_smbus_read_i2c_block_data(i2c_drv_node, (1<<7) | reg_addr, 2, (char *)&rd_data);
+    i2c_smbus_read_i2c_block_data(i2c_drv_node, (1<<7) | (0<<5) | reg_addr, 2, (char *)&rd_data);
 
     return rd_data;
 }
@@ -57,4 +57,32 @@ int tcs34725_wr_reg8(int i2c_drv_node, int reg_addr, int reg_data)
 {
     i2c_smbus_write_byte_data(i2c_drv_node, (1<<7) | reg_addr, reg_data);
 }
+
+int tcs34725_id(int i2c_drv_node)
+{
+    int tcs_version = tcs34725_rd_reg8(i2c_drv_node, TCS34725_ID);
+
+    return tcs_version;
+}
+
+void tcs34725_init(int i2c_drv_node, int gain, int atime)
+{
+    tcs34725_wr_reg8(i2c_drv_node, TCS34725_CONFIG, 0);
+    tcs34725_wr_reg8(i2c_drv_node, TCS34725_CONTROL, gain);
+    tcs34725_wr_reg8(i2c_drv_node, TCS34725_ATIME, atime);
+    tcs34725_wr_reg8(i2c_drv_node, TCS34725_WTIME, 0);
+
+    tcs34725_wr_reg8(i2c_drv_node, TCS34725_ENABLE, 1);
+    usleep(3000);
+    tcs34725_wr_reg8(i2c_drv_node, TCS34725_ENABLE, 3);
+}
+
+void tcs34725_get_data(int i2c_drv_node, uint16_t *c, uint16_t *r, uint16_t *g, uint16_t *b)
+{
+    *c = tcs34725_rd_reg16(i2c_drv_node, TCS34725_CDATAL);
+    *r = tcs34725_rd_reg16(i2c_drv_node, TCS34725_RDATAL);
+    *g = tcs34725_rd_reg16(i2c_drv_node, TCS34725_GDATAL);
+    *b = tcs34725_rd_reg16(i2c_drv_node, TCS34725_BDATAL);
+}
+
 
