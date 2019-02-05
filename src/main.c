@@ -165,7 +165,10 @@ void output_gs1160_csv(int fd,
                        char *dut,
                        struct as7265x_dev_identity *di,
                        struct as7265x_measurement_settings *ms,
-                       struct as7265x_measurement *m)
+                       struct as7265x_measurement *m,
+                       struct tcs34725_dev_identity *tcs_di,
+                       struct tcs34725_measurement_settings *tcs_ms,
+                       struct tcs34725_measurement *tcs_m)
 {
     char buf[65536];
     memset(buf, sizeof(buf), 0);
@@ -194,6 +197,15 @@ void output_gs1160_csv(int fd,
     for(int i=0;i<18;i++){
         sprintf(buf+strlen(buf), "%dnm,%f\n", freqs[freq_order[i]], m->cal_data[freq_order[i]]);
     }
+
+    sprintf(buf+strlen(buf), 
+                             "TCS Gain, %d\n"
+                             "TCS ATime, %f\n"
+                             "TCS C, %d\n"
+                             "TCS R, %d\n"
+                             "TCS G, %d\n"
+                             "TCS B, %d\n"
+                                ,tcs_ms->gain, tcs_ms->atime_ms, tcs_m->c, tcs_m->r, tcs_m->g, tcs_m->b);
 
     write(fd, buf, strlen(buf));
 }
@@ -254,10 +266,17 @@ int main(int argv, char **argc)
 
     tcs34725_init(tcs_i2c_node, 2, 0x40);
 
-    char c = 0;
-    while(c != 'q'){
-        c = getchar();
-        if (c == 3){
+    struct tcs34725_dev_identity tcs_di;
+    struct tcs34725_measurement_settings tcs_ms;
+    struct tcs34725_measurement tcs_m;
+
+    tcs34725_fill_dev_identify(tcs_i2c_node, &tcs_di);
+    tcs34725_fill_measurement_settings(tcs_i2c_node, &tcs_ms);
+
+    char ch = 0;
+    while(ch != 'q'){
+        ch = getchar();
+        if (ch == 3){
             break;
         }
 
@@ -273,16 +292,18 @@ int main(int argv, char **argc)
         tcs34725_get_data(tcs_i2c_node, &c, &r, &g, &b);
 
         printf("c,x,y,z: %d,%d,%d,%d\r\n", c,r,g,b);
-#if 0
-        for(int i=0;i<18;++i){
-            float val = cal_data[freq_order[i]];
-            printf("%3.3f,", val);
-        }
-        printf("\n\r");
-#endif
 
-        if (c == 'r' || c == 'g' || c == 'b' || c == 'w'){
+        if (verbose_flag){
+            for(int i=0;i<18;++i){
+                float val = cal_data[freq_order[i]];
+                printf("%3.3f,", val);
+            }
+            printf("\n\r");
+        }
+
+        if (ch == 'r' || ch == 'g' || ch == 'b' || ch == 'w'){
             as7265x_fill_measurement(as_i2c_node, &m);
+            tcs34725_fill_measurement(tcs_i2c_node, &tcs_m);
 
             struct tm *tm_info;
             tm_info = localtime(&m.timestamp);
@@ -290,10 +311,10 @@ int main(int argv, char **argc)
             strftime(time_str, sizeof(time_str), "%Y%m%d_%H%M%S", tm_info);
 
             char filename[256];
-            sprintf(filename, "as7276x_%s_%c_%s.csv", dut_name, c, time_str);
+            sprintf(filename, "as7276x_%s_%c_%s.csv", dut_name, ch, time_str);
             printf("Logging to file '%s'.\n", filename);
             int fd = creat(filename, O_RDWR | S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-            output_gs1160_csv(fd, dut_name, &di, &ms, &m);
+            output_gs1160_csv(fd, dut_name, &di, &ms, &m, &tcs_di, &tcs_ms, &tcs_m);
             close(fd);
         }
     }

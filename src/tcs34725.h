@@ -24,6 +24,25 @@
 #define TCS34725_BDATAL                 0x1a
 #define TCS34725_BDATAH                 0x1b
 
+struct tcs34725_dev_identity
+{
+    int     id;
+};
+
+struct tcs34725_measurement_settings
+{
+    int     gain;
+    float   atime_ms;
+};
+
+struct tcs34725_measurement
+{
+    time_t  timestamp;
+    int16_t c;
+    int16_t r;
+    int16_t g;
+    int16_t b;
+};
 
 //============================================================
 // Low level I2C
@@ -38,5 +57,9 @@ int tcs34725_wr_reg8(int i2c_drv_node, int reg_addr, int reg_data);
 void tcs34725_init(int i2c_drv_node, int gain, int atime);
 int tcs34725_id(int i2c_drv_node);
 void tcs34725_get_data(int i2c_drv_node, uint16_t *c, uint16_t *r, uint16_t *g, uint16_t *b);
+
+void tcs34725_fill_dev_identify(int i2c_drv_node, struct tcs34725_dev_identity *di);
+void tcs34725_fill_measurement_settings(int i2c_drv_node, struct tcs34725_measurement_settings *ms);
+void tcs34725_fill_measurement(int i2c_drv_node, struct tcs34725_measurement *m);
 
 #endif

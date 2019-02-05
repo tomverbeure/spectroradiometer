@@ -85,4 +85,29 @@ void tcs34725_get_data(int i2c_drv_node, uint16_t *c, uint16_t *r, uint16_t *g, 
     *b = tcs34725_rd_reg16(i2c_drv_node, TCS34725_BDATAL);
 }
 
+void tcs34725_fill_dev_identify(int i2c_drv_node, struct tcs34725_dev_identity *di)
+{
+    di->id = tcs34725_id(i2c_drv_node);
+}
+
+void tcs34725_fill_measurement_settings(int i2c_drv_node, struct tcs34725_measurement_settings *ms)
+{
+    int gain_hw = tcs34725_rd_reg8(i2c_drv_node, TCS34725_CONTROL) & 3;
+
+    ms->gain = gain_hw == 0 ? 1  :
+               gain_hw == 1 ? 4  :
+               gain_hw == 2 ? 16 :
+                              64 ;
+
+    int atime_hw = tcs34725_rd_reg8(i2c_drv_node, TCS34725_ATIME);
+
+    ms->atime_ms = 2.4f * (256 - atime_hw);
+}
+
+void tcs34725_fill_measurement(int i2c_drv_node, struct tcs34725_measurement *m)
+{
+    time(&m->timestamp);
+    tcs34725_get_data(i2c_drv_node, &m->c, &m->r, &m->g, &m->b);
+}
+
 
