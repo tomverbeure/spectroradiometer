@@ -161,14 +161,11 @@ void parse_options(int argc, char **argv)
     }
 }
 
-void output_gs1160_csv(int fd,
+void as_output_csv(int fd,
                        char *dut,
                        struct as7265x_dev_identity *di,
                        struct as7265x_measurement_settings *ms,
-                       struct as7265x_measurement *m,
-                       struct tcs34725_dev_identity *tcs_di,
-                       struct tcs34725_measurement_settings *tcs_ms,
-                       struct tcs34725_measurement *tcs_m)
+                       struct as7265x_measurement *m)
 {
     char buf[65536];
     memset(buf, sizeof(buf), 0);
@@ -183,7 +180,6 @@ void output_gs1160_csv(int fd,
     buckets_to_xyz(m->cal_data, &x, &y, &z);
 
     sprintf(buf, "Model Name, AS72625x\n"
-                 "Serial Number, \n"
                  "Time, %s\n"
                  "DUT, %s\n"
                  "Temperature, %d\n"
@@ -198,14 +194,33 @@ void output_gs1160_csv(int fd,
         sprintf(buf+strlen(buf), "%dnm,%f\n", freqs[freq_order[i]], m->cal_data[freq_order[i]]);
     }
 
-    sprintf(buf+strlen(buf), 
-                             "TCS Gain, %d\n"
-                             "TCS ATime, %f\n"
-                             "TCS C, %d\n"
-                             "TCS R, %d\n"
-                             "TCS G, %d\n"
-                             "TCS B, %d\n"
-                                ,tcs_ms->gain, tcs_ms->atime_ms, tcs_m->c, tcs_m->r, tcs_m->g, tcs_m->b);
+    write(fd, buf, strlen(buf));
+}
+
+void tcs_output_csv(int fd,
+                       char *dut,
+                       struct tcs34725_dev_identity *di,
+                       struct tcs34725_measurement_settings *ms,
+                       struct tcs34725_measurement *m)
+{
+    char buf[65536];
+    memset(buf, sizeof(buf), 0);
+
+    struct tm *tm_info;
+    tm_info = localtime(&m->timestamp);
+    char time_str[80];
+    strftime(time_str, sizeof(time_str), "%Y-%m-%d_%H:%M:%S", tm_info);
+
+    sprintf(buf, "Model Name, TCS34725\n"
+                 "Time, %s\n"
+                 "DUT, %s\n"
+                 "Gain, %d\n"
+                 "ATime, %f\n"
+                 "C, %d\n"
+                 "R, %d\n"
+                 "G, %d\n"
+                 "B, %d\n"
+                    ,time_str, dut, ms->gain, ms->atime_ms, m->c, m->r, m->g, m->b);
 
     write(fd, buf, strlen(buf));
 }
@@ -241,9 +256,9 @@ int main(int argv, char **argc)
 
     tcsetattr(0, TCSANOW, &new_settings);
 
-    printf("AS32765x I2C bus: %d\n\r", i2c_bus);
+    printf("AS7265x I2C bus: %d\n\r", i2c_bus);
     int as_i2c_node = as7265x_i2c_drv_open(i2c_bus);
-    printf("AS32765x i2c_node: %d\n\r", as_i2c_node);
+    printf("AS7265x i2c_node: %d\n\r", as_i2c_node);
     as7265x_i2c_dev_addr_set(as_i2c_node, AS72651_ADDRESS);
 
     startup_blink(as_i2c_node);
@@ -311,10 +326,16 @@ int main(int argv, char **argc)
             strftime(time_str, sizeof(time_str), "%Y%m%d_%H%M%S", tm_info);
 
             char filename[256];
-            sprintf(filename, "as7276x_%s_%c_%s.csv", dut_name, ch, time_str);
+            sprintf(filename, "as7265x_%s_%c_%s.csv", dut_name, ch, time_str);
             printf("Logging to file '%s'.\n", filename);
             int fd = creat(filename, O_RDWR | S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-            output_gs1160_csv(fd, dut_name, &di, &ms, &m, &tcs_di, &tcs_ms, &tcs_m);
+            as_output_csv(fd, dut_name, &di, &ms, &m);
+            close(fd);
+
+            sprintf(filename, "tcs34725_%s_%c_%s.csv", dut_name, ch, time_str);
+            printf("Logging to file '%s'.\n", filename);
+            fd = creat(filename, O_RDWR | S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+            tcs_output_csv(fd, dut_name, &tcs_di, &tcs_ms, &tcs_m);
             close(fd);
         }
     }
