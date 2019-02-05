@@ -179,7 +179,7 @@ void as_output_csv(int fd,
     buckets_to_XYZ(m->cal_data, &X, &Y, &Z);
     buckets_to_xyz(m->cal_data, &x, &y, &z);
 
-    sprintf(buf, "Model Name, AS72625x\n"
+    sprintf(buf, "Model Name, AS7265x\n"
                  "Time, %s\n"
                  "DUT, %s\n"
                  "Temperature, %d\n"
