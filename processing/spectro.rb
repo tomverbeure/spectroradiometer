@@ -97,6 +97,8 @@ class Spectrum
         780 => [ 0.0000, 0.0   , 0.0 ],
     }
 
+    AS_BUCKETS = [ 410, 435, 460, 485, 510, 535, 560, 585, 610, 645, 680, 705, 730, 760, 810, 860, 900, 940]
+
     def self.x_cfm
         x = Spectrum.new
         x.bucket_width = 5
@@ -122,6 +124,22 @@ class Spectrum
         CMF_XYZ.each { |nm, val| z.buckets[nm] = val[2] }
 
         z
+    end
+
+    def self.as_mask(target)
+        s = Spectrum.new
+        s.bucket_width = 20
+
+        target.buckets.keys.each do |nm|
+            s.buckets[nm] = 0.0
+
+            AS_BUCKETS.each do |as_nm|
+                val = Math.exp(-4.0 * Math.log(2) * ((as_nm-nm)**2.0) / (s.bucket_width**2.0) )
+                s.buckets[nm] += val
+            end
+        end
+
+        s
     end
 
     def resample(target)
@@ -199,6 +217,10 @@ class Spectrum
         denom = x+y+z
 
         [x/denom, y/denom]
+    end
+
+    def to_csv
+        s = self.buckets.sort.collect { |nm, val| "#{nm},#{val}" }.join("\n")
     end
 
 end
@@ -320,6 +342,9 @@ if nil
 
 end
 
+def compare_spectra
+end
+
 if 1
     screen = import_json(ARGV[0])
 
@@ -331,6 +356,8 @@ if 1
         end
     end
 
-
+    s = Spectrum.as_mask(screen.colors['r']['gs'].spectrum)
+    puts s.to_csv
 end
+
 
