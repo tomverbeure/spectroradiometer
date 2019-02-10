@@ -323,16 +323,14 @@ end
 if 1
     screen = import_json(ARGV[0])
 
-    x,y = screen.colors["r"]["gs"].spectrum.calc_primaries_rel
-    puts "R: X #{x}, Y #{y}"
+    ["gs", "as"].each do |sensor|
+        puts sensor
+        [ 'r', 'g', 'b', 'w'].each do |c|
+            x,y = screen.colors[c][sensor].spectrum.calc_primaries_rel
+            puts "#{ c }: X %4.4f, Y %4.4f" % [x,y]
+        end
+    end
 
-    x,y = screen.colors["g"]["gs"].spectrum.calc_primaries_rel
-    puts "G: X #{x}, Y #{y}"
 
-    x,y = screen.colors["b"]["gs"].spectrum.calc_primaries_rel
-    puts "B: X #{x}, Y #{y}"
-
-    x,y = screen.colors["w"]["gs"].spectrum.calc_primaries_rel
-    puts "W: X #{x}, Y #{y}"
 end
 
