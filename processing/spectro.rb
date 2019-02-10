@@ -1,11 +1,12 @@
 #! /usr/bin/env ruby
 
 require 'time'
+require 'json'
 
 require 'pp'
 
 class Spectrum
-    
+
     attr_accessor :buckets, :bucket_width
 
     def initialize
@@ -96,7 +97,7 @@ class Spectrum
         780 => [ 0.0000, 0.0   , 0.0 ],
     }
 
-    def self.x_cfm 
+    def self.x_cfm
         x = Spectrum.new
         x.bucket_width = 5
 
@@ -105,7 +106,7 @@ class Spectrum
         x
     end
 
-    def self.y_cfm 
+    def self.y_cfm
         y = Spectrum.new
         y.bucket_width = 5
 
@@ -114,7 +115,7 @@ class Spectrum
         y
     end
 
-    def self.z_cfm 
+    def self.z_cfm
         z = Spectrum.new
         z.bucket_width = 5
 
@@ -144,15 +145,60 @@ class Spectrum
         s_new
     end
 
-end
+    def multiply(target)
+        target_resample = target.resample(self)
 
-class Ensemble
+        s_new = Spectrum.new
+        s_new.bucket_width = self.bucket_width
 
-    attr_accessor :dut
-    attr_accessor :measurements
+        self.buckets.each do |nm, b_val|
+            t_val = target_resample.buckets[nm]
+            s_new.buckets[nm] = b_val * t_val
+        end
 
-    def initialize
-        self.measurements = {}
+        s_new
+    end
+
+    def sum_reduce
+        sum = 0.0
+
+        self.buckets.each { |nm, val| sum += val }
+
+        sum
+    end
+
+    def visible_spectrum
+        s_new = Spectrum.new
+        s_new.bucket_width = self.bucket_width
+
+        self.buckets.each { |nm, val| s_new.buckets[nm] = val if (nm >= 380 && nm <= 780) }
+
+        s_new
+    end
+
+    def calc_primaries_abs
+        x = Spectrum.x_cfm
+        y = Spectrum.y_cfm
+        z = Spectrum.z_cfm
+
+        s_resample = self.visible_spectrum.resample(x)
+
+        s_x = s_resample.multiply(x)
+        s_y = s_resample.multiply(y)
+        s_z = s_resample.multiply(z)
+
+        x = s_x.sum_reduce
+        y = s_y.sum_reduce
+        z = s_z.sum_reduce
+
+        [x,y,z]
+    end
+
+    def calc_primaries_rel
+        x,y,z = self.calc_primaries_abs
+        denom = x+y+z
+
+        [x/denom, y/denom]
     end
 
 end
@@ -167,6 +213,26 @@ class Measurement
     attr_accessor :R, :G, :B
     attr_accessor :spectrum
 
+end
+
+class Color
+
+    attr_accessor :dut
+    attr_accessor :measurements
+
+    def initialize
+        self.measurements = {}
+    end
+
+end
+
+class Screen
+    attr_accessor :dut
+    attr_accessor :colors
+
+    def initialize
+        self.colors = {}
+    end
 end
 
 def read_csv(filename)
@@ -195,9 +261,9 @@ def read_csv(filename)
     m
 end
 
-def read_ensemble(filenames)
+def read_colors(filenames)
 
-    e = Ensemble.new
+    e = Color.new
     filenames.each do |f|
         m = read_csv(f)
         e.measurements[m.sensor] = m
@@ -206,12 +272,67 @@ def read_ensemble(filenames)
     e
 end
 
-e = read_ensemble(ARGV)
+def import_json(filename)
+    screen = Screen.new
 
-x = Spectrum.x_cfm
+    basedir = File.dirname(filename)
 
-gs_resample_x = e.measurements["GS1160"].spectrum.resample(x)
+    screen.colors["r"] = {}
+    screen.colors["g"] = {}
+    screen.colors["b"] = {}
+    screen.colors["w"] = {}
 
-gs_resample.buckets.each do |nm, val|
-    puts "#{nm},#{val}"
+    data_files = JSON.parse(File.open(filename).read)
+
+    data_files.each do |sensor, colors|
+        colors.each do |color, file|
+            screen.colors[color][sensor] = read_csv(basedir + '/' + file)
+        end
+    end
+
+    screen
 end
+
+if nil
+    e = read_colors(ARGV)
+
+    x = Spectrum.x_cfm
+    y = Spectrum.y_cfm
+    z = Spectrum.z_cfm
+
+    gs_orig = e.measurements["GS1160"].spectrum
+    gs_resample = e.measurements["GS1160"].spectrum.resample(x)
+    gs_x = gs_resample.multiply(x)
+    gs_y = gs_resample.multiply(y)
+    gs_z = gs_resample.multiply(z)
+
+    x = gs_x.sum_reduce
+    y = gs_y.sum_reduce
+    z = gs_z.sum_reduce
+
+    gs_resample.buckets.each do |nm, val|
+        puts "#{nm},#{val}"
+    end
+
+    puts
+    puts x,y,z
+    puts x/(x+y+z), y/(x+y+z)
+
+end
+
+if 1
+    screen = import_json(ARGV[0])
+
+    x,y = screen.colors["r"]["gs"].spectrum.calc_primaries_rel
+    puts "R: X #{x}, Y #{y}"
+
+    x,y = screen.colors["g"]["gs"].spectrum.calc_primaries_rel
+    puts "G: X #{x}, Y #{y}"
+
+    x,y = screen.colors["b"]["gs"].spectrum.calc_primaries_rel
+    puts "B: X #{x}, Y #{y}"
+
+    x,y = screen.colors["w"]["gs"].spectrum.calc_primaries_rel
+    puts "W: X #{x}, Y #{y}"
+end
+

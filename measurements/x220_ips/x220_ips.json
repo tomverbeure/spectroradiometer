@@ -1,0 +1,20 @@
+{
+    "gs" : { 
+        "b": "gs-1160/max_brightness/ESPD2016_b_1021_152348.csv",
+        "g": "gs-1160/max_brightness/ESPD2016_g_1021_152326.csv",
+        "r": "gs-1160/max_brightness/ESPD2016_r_1021_152307.csv",
+        "w": "gs-1160/max_brightness/ESPD2016_w_1021_152406.csv"
+    },
+    "as" : {
+        "b": "as7265x_x220_ips_b_20190204_213612.csv",
+        "g": "as7265x_x220_ips_g_20190204_213558.csv",
+        "r": "as7265x_x220_ips_r_20190204_213544.csv",
+        "w": "as7265x_x220_ips_w_20190204_213621.csv"
+    },
+    "tcs" : {
+        "b": "tcs34725_x220_ips_b_20190204_213612.csv",
+        "g": "tcs34725_x220_ips_g_20190204_213558.csv",
+        "r": "tcs34725_x220_ips_r_20190204_213544.csv",
+        "w": "tcs34725_x220_ips_w_20190204_213621.csv"
+    }
+}
