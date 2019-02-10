@@ -6,7 +6,7 @@ require 'pp'
 
 class Spectrum
     
-    attr_accessor :buckets, :fwhm, :bucket_width
+    attr_accessor :buckets, :bucket_width
 
     def initialize
         self.buckets = {}
@@ -98,6 +98,7 @@ class Spectrum
 
     def self.x_cfm 
         x = Spectrum.new
+        x.bucket_width = 5
 
         CMF_XYZ.each { |nm, val| x.buckets[nm] = val[0] }
 
@@ -106,6 +107,7 @@ class Spectrum
 
     def self.y_cfm 
         y = Spectrum.new
+        y.bucket_width = 5
 
         CMF_XYZ.each { |nm, val| y.buckets[nm] = val[1] }
 
@@ -114,10 +116,32 @@ class Spectrum
 
     def self.z_cfm 
         z = Spectrum.new
+        z.bucket_width = 5
 
         CMF_XYZ.each { |nm, val| z.buckets[nm] = val[2] }
 
         z
+    end
+
+    def resample(target)
+        s_new = Spectrum.new
+
+        target.buckets.each { |nm, val| s_new.buckets[nm] = 0.0 }
+        s_new.bucket_width = target.bucket_width
+
+        self.buckets.each do |old_nm, old_val|
+            closest_nm = 10000
+            s_new.buckets.keys.each do |new_nm|
+                if (new_nm-old_nm).abs < (closest_nm-old_nm).abs
+                    closest_nm = new_nm
+                end
+            end
+
+            # FIXME: currently assume that all original buckets fall into a new bucket
+            s_new.buckets[closest_nm] += old_val
+        end
+
+        s_new
     end
 
 end
@@ -150,8 +174,7 @@ def read_csv(filename)
     m =  Measurement.new
 
     File.readlines(filename).each_with_index do |line, line_nr|
-        fields = line.split(/\s*,\s*/)
-        puts fields
+        fields = line.split(/\s*,\s*/).collect{ |f| f.chomp }
 
         m.sensor = fields[1] if fields[0] == "Model Name"
         m.time = Time.parse(fields[1].gsub(/_/, ' ')) if fields[0] == "Time"
@@ -169,7 +192,6 @@ def read_csv(filename)
 
     end
 
-    pp m
     m
 end
 
@@ -185,8 +207,11 @@ def read_ensemble(filenames)
 end
 
 e = read_ensemble(ARGV)
-#pp e
 
 x = Spectrum.x_cfm
-pp x
 
+gs_resample_x = e.measurements["GS1160"].spectrum.resample(x)
+
+gs_resample.buckets.each do |nm, val|
+    puts "#{nm},#{val}"
+end
