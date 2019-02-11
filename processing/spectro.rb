@@ -367,7 +367,13 @@ def compare_primaries
             s_final = nil
             if sensor == "as"
                 s_final = screen.colors[c][sensor].spectrum
-                s_final.buckets[610] *= 0.9
+                if 1
+                    s_final.buckets[485] *= 0.8
+                    s_final.buckets[560] *= 1.7
+                    s_final.buckets[585] *= 1.7
+                    s_final.buckets[610] *= 0.9
+                    s_final.buckets[645] *= 1.5
+                end
             elsif sensor == "gs"
                 s_final = screen.colors[c][sensor].spectrum
                 s_final = s_final.multiply(s_mask)
@@ -415,6 +421,6 @@ def compare_recorded_spectrum
 
 end
 
-compare_recorded_spectrum
-#compare_primaries
+#compare_recorded_spectrum
+compare_primaries
 
