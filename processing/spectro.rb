@@ -128,7 +128,9 @@ class Spectrum
 
     def self.as_mask(target)
         s = Spectrum.new
-        s.bucket_width = 20
+
+        # Using 18 instead of 20 because that matches the graphs of the AS datasheet better.
+        s.bucket_width = 18     
 
         target.buckets.keys.each do |nm|
             s.buckets[nm] = 0.0
@@ -345,19 +347,74 @@ end
 def compare_spectra
 end
 
-if 1
+def compare_primaries
+
     screen = import_json(ARGV[0])
 
+    s_mask = Spectrum.as_mask(screen.colors['r']['gs'].spectrum)
+
+    g_gold = [ screen.colors["g"]["gs"].x, screen.colors["g"]["gs"].y]
+    b_gold = [ screen.colors["b"]["gs"].x, screen.colors["b"]["gs"].y]
+    w_gold = [ screen.colors["w"]["gs"].x, screen.colors["w"]["gs"].y]
+
     ["gs", "as"].each do |sensor|
+
         puts sensor
         [ 'r', 'g', 'b', 'w'].each do |c|
-            x,y = screen.colors[c][sensor].spectrum.calc_primaries_rel
-            puts "#{ c }: X %4.4f, Y %4.4f" % [x,y]
+
+            xy_gold = [ screen.colors[c]["gs"].x, screen.colors[c]["gs"].y]
+
+            s_final = nil
+            if sensor == "as"
+                s_final = screen.colors[c][sensor].spectrum
+                s_final.buckets[610] *= 0.9
+            elsif sensor == "gs"
+                s_final = screen.colors[c][sensor].spectrum
+                s_final = s_final.multiply(s_mask)
+            end
+
+            x,y = s_final.calc_primaries_rel
+
+            distance = Math.sqrt((x-xy_gold[0])**2  + (y-xy_gold[1])**2)
+
+            puts "#{ c }: x %4.3f, y %4.3f (distance: %4.3f, delta: %+4.3f, %+4.3f)" % [x,y, distance, x-xy_gold[0], y-xy_gold[1]]
         end
     end
 
-    s = Spectrum.as_mask(screen.colors['r']['gs'].spectrum)
-    puts s.to_csv
 end
 
+
+def compare_recorded_spectrum
+
+    screen = import_json(ARGV[0])
+
+    s_mask = Spectrum.as_mask(screen.colors['r']['gs'].spectrum)
+
+    [ 'r', 'g', 'b', 'w'].each do |c|
+        s_as     = screen.colors[c]["as"].spectrum
+        s_gs     = screen.colors[c]["gs"].spectrum.resample(s_as)
+        s_gs_adj = screen.colors[c]["gs"].spectrum.multiply(s_mask).resample(s_as)
+
+        peak_as = s_as.buckets.values.max
+        peak_gs = s_gs.buckets.values.max
+
+        puts "nm,gs,gs_adj,as,diff"
+        s_as.buckets.keys.sort.each do |nm|
+            val_as = s_as.buckets[nm]
+            val_gs = s_gs.buckets[nm]
+
+            if val_as/peak_as >= 0.02 && val_gs/peak_gs >= 0.02
+                puts "#{nm},#{s_gs.buckets[nm] * peak_as/peak_gs},#{s_gs_adj.buckets[nm] * peak_as/peak_gs},#{s_as.buckets[nm]},#{(val_as/val_gs)}"
+            else
+                puts "#{nm},#{s_gs.buckets[nm] * peak_as/peak_gs},#{s_gs_adj.buckets[nm] * peak_as/peak_gs},#{s_as.buckets[nm]}"
+            end
+
+        end
+
+    end
+
+end
+
+compare_recorded_spectrum
+#compare_primaries
 
