@@ -366,8 +366,8 @@ def compare_primaries
 
             s_final = nil
             if sensor == "as"
-                s_final = screen.colors[c][sensor].spectrum
-                if 1
+                s_final = screen.colors[c][sensor].spectrum.visible_spectrum
+                if nil
                     s_final.buckets[485] *= 0.8
                     s_final.buckets[560] *= 1.7
                     s_final.buckets[585] *= 1.7
@@ -397,7 +397,7 @@ def compare_recorded_spectrum
     s_mask = Spectrum.as_mask(screen.colors['r']['gs'].spectrum)
 
     [ 'r', 'g', 'b', 'w'].each do |c|
-        s_as     = screen.colors[c]["as"].spectrum
+        s_as     = screen.colors[c]["as"].spectrum.visible_spectrum
         s_gs     = screen.colors[c]["gs"].spectrum.resample(s_as)
         s_gs_adj = screen.colors[c]["gs"].spectrum.multiply(s_mask).resample(s_as)
 
