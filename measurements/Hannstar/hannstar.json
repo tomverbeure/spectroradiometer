@@ -1,0 +1,21 @@
+{
+    "gs" : { 
+        "b": "gs-1160/ESPD2016_1023_022753.csv",
+        "g": "gs-1160/ESPD2016_1023_022735.csv",
+        "r": "gs-1160/ESPD2016_1023_022718.csv",
+        "w": "gs-1160/ESPD2016_1023_022810.csv"
+    },
+    "as" : {
+        "b": "as7265x_Hannstar_b_20190211_193700.csv",
+        "g": "as7265x_Hannstar_g_20190211_193655.csv",
+        "r": "as7265x_Hannstar_r_20190211_193649.csv",
+        "w": "as7265x_Hannstar_w_20190211_193707.csv"
+    },
+    "tcs" : {
+        "b": "tcs34725_Hannstar_b_20190211_193700.csv",
+        "g": "tcs34725_Hannstar_g_20190211_193655.csv",
+        "r": "tcs34725_Hannstar_r_20190211_193649.csv",
+        "w": "tcs34725_Hannstar_w_20190211_193707.csv"
+    }
+
+}
