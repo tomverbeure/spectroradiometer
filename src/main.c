@@ -105,6 +105,19 @@ void func(int sockfd)
     }
 }
 
+void print_help()
+{
+    printf(
+        "./as7265x\n"
+        "    -i|--i2c_bus <bus_nr>\n"
+        "    -v|--verbose\n"
+        "    -s|--server\n"
+        "    -p|--port <port_nr>\n"
+        "    -d|--dut <dut_name>\n"
+        "    -h|--help\n"
+        "\n");
+}
+
 void parse_options(int argc, char **argv)
 {
     int c;
@@ -141,7 +154,7 @@ void parse_options(int argc, char **argv)
                 strncpy(dut_name, optarg, sizeof(dut_name)-1);
                 break;
             case 'h':
-                printf("as7265x ... TODO\n");
+                print_help();
                 exit(0);
                 break;
         }
@@ -257,9 +270,21 @@ int main(int argv, char **argc)
     tcsetattr(0, TCSANOW, &new_settings);
 
     printf("AS7265x I2C bus: %d\n\r", i2c_bus);
+
     int as_i2c_node = as7265x_i2c_drv_open(i2c_bus);
+    if (as_i2c_node == -1){
+        printf("Can't open i2c node\n");
+        tcsetattr(0, TCSANOW, &orig_settings);
+        exit(1);
+    }
     printf("AS7265x i2c_node: %d\n\r", as_i2c_node);
-    as7265x_i2c_dev_addr_set(as_i2c_node, AS72651_ADDRESS);
+
+    int ret = as7265x_i2c_dev_addr_set(as_i2c_node, AS72651_ADDRESS);
+    if (ret == -1){
+        printf("Can't access I2C address\n");
+        tcsetattr(0, TCSANOW, &orig_settings);
+        exit(2);
+    }
 
     startup_blink(as_i2c_node);
     as7265x_init(as_i2c_node, GAIN_16X, MODE2, 36);

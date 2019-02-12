@@ -29,7 +29,7 @@ int as7265x_i2c_drv_open(int i2c_port_nr)
     if (i2c_drv_node < 0)
     {
         perror("Unable to open device node.");
-        exit(1);
+        return -1;
     }
 
     return i2c_drv_node;
@@ -40,7 +40,7 @@ int as7265x_i2c_dev_addr_set(int i2c_drv_node, int i2c_dev_addr)
 	int ret_val = ioctl(i2c_drv_node, I2C_SLAVE, i2c_dev_addr);
 	if (ret_val < 0) {
 		perror("Could not set I2C_SLAVE.");
-		exit(2);
+        return -1;
 	}
 }
 
