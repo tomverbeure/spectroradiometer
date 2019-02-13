@@ -20,12 +20,13 @@
 #include "tcp_server.h"
 
 // Command line options
-int i2c_bus = -1;
-int verbose_flag = 0;
-int server_flag = 0;
-int port_nr = 5000;
-int gain=GAIN_16X;
-char dut_name[256];
+int   i2c_bus = -1;
+int   verbose_flag = 0;
+int   server_flag = 0;
+int   port_nr = 5000;
+int   gain=GAIN_16X;
+float int_time_ms=100.8;
+char  dut_name[256];
 
 void buckets_to_XYZ(float cal_data[18], double *X, double *Y, double *Z)
 {
@@ -115,7 +116,8 @@ void print_help()
         "    -s|--server\n"
         "    -p|--port <port_nr>\n"
         "    -d|--dut <dut_name>\n"
-        "    -g|--gain <0..3> for 1x, 3.7x, 16x, 64x\n"
+        "    -g|--gain <0..3> for 1x, 3.7x, 16x, 64x (default = 16x)\n"
+        "    -t|--int_time <3..711ms> (default = 100ms)\n"
         "    -h|--help\n"
         "\n");
 }
@@ -131,6 +133,7 @@ void parse_options(int argc, char **argv)
         { "port",               required_argument,  NULL,           'p'},
         { "dut",                required_argument,  NULL,           'd'},
         { "gain",               required_argument,  NULL,           'g'},
+        { "int_time",           required_argument,  NULL,           't'},
         { "help",               no_argument,        NULL,           'h'},
         { 0,0,0,0 }
     };
@@ -139,7 +142,7 @@ void parse_options(int argc, char **argv)
     memset(dut_name, sizeof(dut_name), 0);
 
     int option_index = 0;
-    while((c = getopt_long(argc, argv, "i:vsp:hd:g:", long_options, &option_index)) != -1){
+    while((c = getopt_long(argc, argv, "i:vsp:hd:g:t:", long_options, &option_index)) != -1){
         switch(c){
             case 'i':
                 i2c_bus = atoi(optarg);
@@ -159,6 +162,9 @@ void parse_options(int argc, char **argv)
             case 'g':
                 gain = atoi(optarg);
                 break;
+            case 't':
+                int_time_ms = atof(optarg);
+                break;
             case 'h':
                 print_help();
                 exit(0);
@@ -173,6 +179,7 @@ void parse_options(int argc, char **argv)
         printf("port:               %d\n", port_nr);
         printf("DUT name:           %s\n", dut_name);
         printf("gain:               %d\n", gain);
+        printf("integration time:   %f\n", int_time_ms);
     }
 
     if (i2c_bus == -1){
@@ -210,12 +217,13 @@ void as_output_csv(int fd,
                  "DUT,%s\n"
                  "Temperature, %d\n"
                  "Gain,%f\n"
+                 "Integration Time,%f\n"
                  "X, %f\n"
                  "Y, %f\n"
                  "Z, %f\n"
                  "x, %f\n"
                  "y, %f\n"
-                    ,time_str, dut, m->temp[0], gain_f, X,Y,Z,x,y);
+                    ,time_str, dut, m->temp[0], gain_f, ms->int_time_ms,X,Y,Z,x,y);
 
     for(int i=0;i<18;i++){
         sprintf(buf+strlen(buf), "%dnm,%f\n", freqs[freq_order[i]], m->cal_data[freq_order[i]]);
@@ -301,7 +309,7 @@ int main(int argv, char **argc)
     }
 
     startup_blink(as_i2c_node);
-    as7265x_init(as_i2c_node, gain, MODE2, 36);
+    as7265x_init(as_i2c_node, gain, MODE2, int_time_ms);
 
     struct as7265x_dev_identity di;
     struct as7265x_measurement_settings ms;

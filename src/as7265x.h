@@ -114,7 +114,7 @@ struct as7265x_dev_identity
 struct as7265x_measurement_settings
 {
     int     gain;
-    int     int_time;
+    float   int_time_ms;
     int     mode;
 };
 
@@ -134,7 +134,7 @@ void as7265x_wait_rx_valid(int i2c_drv_node);
 int  as7265x_rd_reg(int i2c_drv_node, int reg_addr);
 void as7265x_wr_reg(int i2c_drv_node, int reg_addr, int reg_data);
 void as7265x_dev_sel(int i2c_drv_node, int dev_nr);
-void as7265x_init(int i2c_drv_node, int gain, int mode, int int_time);
+void as7265x_init(int i2c_drv_node, int gain, int mode, float int_time_ms);
 void as7265x_revision(int i2c_drv_node, int *hw_version, int *sw_major_version, int *sw_patch_version, int *sw_build_version);
 void as7265x_set_indicator_led(int i2c_drv_node, int dev_nr, int enable);
 void as7265x_read_and_print(int i2c_drv_node, int reg_addr);

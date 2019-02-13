@@ -113,12 +113,14 @@ void as7265x_dev_sel(int i2c_drv_node, int dev_nr)
     as7265x_wr_reg(i2c_drv_node, AS72651_DEV_SEL, dev_nr);
 }
 
-void as7265x_init(int i2c_drv_node, int gain, int mode, int int_time)
+void as7265x_init(int i2c_drv_node, int gain, int mode, float int_time_ms)
 {
+    int int_time_i = int_time_ms / 2.8;
+
     as7265x_wr_reg(i2c_drv_node, AS72651_CONTROL_SETUP, (1 << 7) );         // Soft reset
     as7265x_wr_reg(i2c_drv_node, AS72651_LED_CONFIG, 0x00);
     as7265x_wr_reg(i2c_drv_node, AS72651_CONTROL_SETUP, (gain << 4) | (mode << 2));
-    as7265x_wr_reg(i2c_drv_node, AS72651_INT_TIME, int_time);
+    as7265x_wr_reg(i2c_drv_node, AS72651_INT_TIME, int_time_i);
 }
 
 
@@ -287,7 +289,7 @@ void as7265x_fill_measurement_settings(int i2c_drv_node, struct as7265x_measurem
     int setup = as7265x_rd_reg(i2c_drv_node, AS72651_CONTROL_SETUP);
     ms->gain        = (setup >> 4) & 3;
     ms->mode        = (setup >> 2) & 3;
-    ms->int_time = as7265x_rd_reg(i2c_drv_node, AS72651_INT_TIME);
+    ms->int_time_ms = as7265x_rd_reg(i2c_drv_node, AS72651_INT_TIME) * 2.8f;
 }
 
 void as7265x_fill_dev_identify(int i2c_drv_node, struct as7265x_dev_identity *di)
