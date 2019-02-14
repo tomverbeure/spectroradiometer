@@ -20,6 +20,9 @@ The overall setup is extremely simple:
 
     After compiling, I flashed the firmware with an STLINK dongle.
 
+* Desolder the red power LED from the Blue Pill
+
+    We don't want the LED light to disturb the measurements!
 
 The first prototype looks like this:
 
