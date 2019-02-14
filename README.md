@@ -37,6 +37,11 @@ Here's everything soldered together:
 To test that the basics are working:
 
 * install the `i2c-tools` package on your Ubuntu installation.
+
+```
+sudo apt install i2c-tools
+```
+
 * plug in the USB cable
 * `i2cdetect -l`
 
@@ -55,7 +60,13 @@ To test that the basics are working:
 
 There is tool in the `./src` that I use to extract data from the sensor. It's under heavy development...
 
-You can compile it with `make` in the root directory.
+* Install I2C development libraries
+
+```
+sudo apt install libi2c-dev
+```
+
+* Compile `make` in the root directory.
 
 The current command line options are [here](https://github.com/tomverbeure/spectroradiometer/blob/9a67c508d6ee08024441081776389e9e6c86e1fb/src/main.c#L113-L121).
 Note that the `--server` and `--port` options are currently non-functional!
