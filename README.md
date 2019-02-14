@@ -13,7 +13,7 @@ The overall setup is extremely simple:
 
     The well known dirt cheap (less than $2) controller which has a USB device interface and an I2C master (among many other things.)
 
-* [STM32 I2C Star]([https://github.com/daniel-thompson/i2c-star) firmware
+* [STM32 I2C Star](https://github.com/daniel-thompson/i2c-star) firmware
 
     This firmware implements a USB to I2C bridge. There is a Linux driver that supports this bridge
     that comes standard with the Linux kernel.
