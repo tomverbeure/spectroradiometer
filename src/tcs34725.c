@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <stdint.h>
 #include <time.h>
+#include <sys/ioctl.h>
 
 #include "linux/i2c-dev.h"
 
