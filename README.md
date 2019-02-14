@@ -20,7 +20,7 @@ The overall setup is extremely simple:
 
     After compiling, I flashed the firmware with an STLINK dongle.
 
-![Breadboard prototype](./assets/Breadboard Prototype.JPG)
+![Breadboard prototype](./assets/Breadboard_Prototype.JPG)
 
 
 # First Contact Testing
